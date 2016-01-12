@@ -20,7 +20,7 @@ var archieml = require("archieml");
 var request = require('request');
 var http = require('http');
 
-var gdoc_id = "";
+var gdoc_id = "1SLcvwWaj7EQMECBBEOqUuQGiNtIUZ-wc5j7MOAgnFTs";
 var gdoc_host = "127.0.0.1:6006";
 var gdoc_url = "http://"+gdoc_host+"/"+ gdoc_id;
 var content = {};
@@ -211,4 +211,3 @@ if (args.build) {
     gulp.start("browser-sync");
   });
 }
-
