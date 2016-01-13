@@ -35,12 +35,29 @@ function update () {
 	}
 
 	_.each(refugeeData, function(data, country) {
+		if (country == 'total') {
+			return;
+		}
+
 		// Render the chart!
 		renderColumnChart({
 			container: '#' + classify(country),
 			width: width,
-			data: data
+			data: data,
+			aspectRatio: 5,
+			max: 12,
+			yTicks: isMobile ? [0, 6, 12] : [0, 3, 6, 9, 12]
 		});
+	});
+
+	// Render the chart!
+	renderColumnChart({
+		container: '#total',
+		width: width,
+		data: refugeeData['total'],
+		aspectRatio: 1,
+		max: 60,
+		yTicks: [0, 15, 30, 45, 60]
 	});
 
 	// adjust iframe for dynamic content
@@ -58,9 +75,6 @@ var renderColumnChart = function(config) {
 	/*
 	 * Setup chart container.
 	 */
-	var aspectWidth = 5;
-	var aspectHeight = 1;
-
 	var margins = {
 		top: 10,
 		right: 5,
@@ -70,7 +84,7 @@ var renderColumnChart = function(config) {
 
 	// Calculate actual chart dimensions
 	var chartWidth = config['width'] - margins['left'] - margins['right'];
-	var chartHeight = Math.ceil((config['width'] * aspectHeight) / aspectWidth) - margins['top'] - margins['bottom'];
+	var chartHeight = Math.ceil(config['width'] / config['aspectRatio']) - margins['top'] - margins['bottom'];
 
 	// Clear existing graphic (for redraw)
 	var containerElement = d3.select(config['container']);
@@ -101,10 +115,9 @@ var renderColumnChart = function(config) {
 		.rangeRoundBands([0, chartWidth], .1)
 		.domain(domain);
 
-
 	var yScale = d3.scale.linear()
 		.range([chartHeight, 0])
-		.domain([0, 12]);
+		.domain([0, config['max']]);
 
 	/*
 	 * Create D3 axes.
@@ -127,7 +140,7 @@ var renderColumnChart = function(config) {
 	var yAxis = d3.svg.axis()
 		.scale(yScale)
 		.orient('left')
-		.tickValues([0, 3, 6, 9, 12])
+		.tickValues(config['yTicks'])
 		.tickFormat(function(d, i) {
 			var label = fmtComma(d);
 

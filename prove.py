@@ -144,7 +144,13 @@ def graphic(data):
         'Afghanistan',
         'Iraq',
         'Bosnia and Herzegovina',
-        'Nepal'
+        'Nepal',
+        'Rwanda',
+        'Colombia',
+        'Sudan',
+        'Somalia',
+        'Thailand',
+        'Syrian Arab Rep.'
     ]
 
     data['grouped'] = (data['table']
@@ -170,6 +176,21 @@ def graphic(data):
                 years.append(None)
 
         countries[country] = years
+
+    totals = (data['table']
+        .group_by('year')
+        .aggregate([
+            ('total', agate.Sum('total'))
+        ])
+        .rename(row_names=lambda r: str(r['year'])))
+
+    years = []
+
+    for year in range(1975, 2015):
+        row = totals.rows[str(year)]
+        years.append(row['total'])
+
+    countries['total'] = years
 
     with open('src/data/refugees.json', 'w') as f:
         json.dump(countries, f, cls=DecimalEncoder)
