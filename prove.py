@@ -8,7 +8,7 @@ import agate
 import csvkit
 import proof
 
-FIRST_YEAR = 1975
+FIRST_YEAR = 1990
 
 SELECTED_COUNTRIES = [
     'Syrian Arab Rep.',

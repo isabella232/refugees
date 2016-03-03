@@ -5,7 +5,7 @@ var d3 = require('d3');
 var request = require('d3-request');
 var _ = require('lodash');
 
-var FIRST_YEAR = 1975;
+var FIRST_YEAR = 1990;
 var LAST_YEAR = 2015;
 var MOBILE_THRESHOLD = 600;
 
@@ -46,7 +46,7 @@ function update () {
 			container: id,
 			width: $(id).width(),
 			data: data,
-			aspectRatio: 5,
+			aspectRatio: 1.5,
 			max: 12,
 			yTicks: isMobile ? [0, 6, 12] : [0, 3, 6, 9, 12]
 		});
