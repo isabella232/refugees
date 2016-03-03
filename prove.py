@@ -8,6 +8,48 @@ import agate
 import csvkit
 import proof
 
+FIRST_YEAR = 1975
+
+SELECTED_COUNTRIES = [
+    'Syrian Arab Rep.',
+    'Colombia',
+    'Iraq',
+    'Dem. Rep. of the Congo',
+    'Afghanistan',
+    'Sudan',
+    'South Sudan',
+    'Somalia',
+    'Pakistan',
+    'Myanmar',
+    'Libya',
+    'Yemen',
+    'Cote d\'Ivoire',
+    'Ukraine',
+    'Chad',
+    'Eritrea',
+    'Pakistan'
+]
+
+MID_YEAR_2015 = {
+    'Syrian Arab Rep.': 11925806,
+    'Colombia': 6872447,
+    'Iraq': 4485881,
+    'Dem. Rep. of the Congo': 2415802,
+    'Afghanistan': 3935141,
+    'Sudan': 3078014,
+    'South Sudan': 2540013,
+    'Somalia': 2307686,
+    'Pakistan': 2207555,
+    'Myanmar': 891047,
+    'Libya': 444412,
+    'Yemen': 1279054,
+    'Cote d\'Ivoire': 110669,
+    'Ukraine': 1721545,
+    'Chad': 86637,
+    'Eritrea': 444091,
+    'total': 57959702
+}
+
 def load_data(data):
     """
     Load the dataset.
@@ -83,20 +125,7 @@ def worst_country_year(data):
     refugees.print_table(30)
 
 def subset(data):
-    countries = [
-        'Syrian Arab Rep.',
-        'Afghanistan',
-        'Colombia',
-        'Iraq',
-        'Dem. Rep. of the Congo',
-        'Rwanda',
-        'Nepal',
-        'Thailand',
-        'Sudan',
-        'Somalia'
-    ]
-
-    subset = data['table'].where(lambda r: r['origin'] in countries and r['year'] >= 1980)
+    subset = data['table'].where(lambda r: r['origin'] in SELECTED_COUNTRIES and r['year'] >= 1980)
     groups = subset.group_by(
         lambda r: '/'.join([str(r['year']), r['origin']]),
         key_name='year_and_origin'
@@ -132,6 +161,50 @@ def subset(data):
 
     refugees.to_csv('subset.csv')
 
+def to_and_from(data):
+    refugees = data['table'].select([
+        'origin',
+        'residence',
+        'year',
+        'refugees'
+    ])
+
+    by_year = refugees.group_by('year')
+
+    by_origin = (by_year
+        .group_by('origin')
+        .aggregate([
+            ('origin_refugees', agate.Sum('refugees'))
+        ]))
+
+    by_residence = (by_year
+        .group_by('residence')
+        .aggregate([
+            ('residence_refugees', agate.Sum('refugees'))
+        ]))
+
+    def comparison(r):
+        origin =  r['origin_refugees']
+        residence = r['residence_refugees']
+
+        if not origin:
+            return None
+
+        if not residence:
+            return None
+
+        return 1 - (abs(origin - residence) / (origin + residence))
+
+    joined = (by_origin
+        .join(by_residence, lambda r: (r['year'], r['origin']), lambda r: (r['year'], r['residence']))
+        .exclude(['residence', 'year2'])
+        .rename(column_names={ 'origin': 'country' })
+        .compute([
+            ('ratio', agate.Formula(agate.Number(), comparison))
+        ]))
+
+    joined.to_csv('joined.csv')
+
 class DecimalEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, decimal.Decimal):
@@ -139,27 +212,12 @@ class DecimalEncoder(json.JSONEncoder):
         return super(DecimalEncoder, self).default(o)
 
 def graphic(data):
-    SELECTED_COUNTRIES = [
-        'Ethiopia',
-        'Afghanistan',
-        'Iraq',
-        'Bosnia and Herzegovina',
-        'Nepal',
-        'Rwanda',
-        'Colombia',
-        'Sudan',
-        'Somalia',
-        'Thailand',
-        'Syrian Arab Rep.'
-    ]
-
     data['grouped'] = (data['table']
         .group_by('origin')
         .group_by('year')
         .aggregate([
             ('total', agate.Sum('total'))
         ])
-
         .rename(row_names=lambda r: '%(origin)s-%(year)s' % r))
 
     countries = {}
@@ -167,13 +225,15 @@ def graphic(data):
     for country in SELECTED_COUNTRIES:
         years = []
 
-        for year in range(1975, 2015):
+        for year in range(FIRST_YEAR, 2015):
             try:
                 name = '%s-%s' % (country, year)
                 row = data['grouped'].rows[name]
                 years.append(row['total'])
             except KeyError:
                 years.append(None)
+
+        years.append(MID_YEAR_2015[country])
 
         countries[country] = years
 
@@ -186,9 +246,11 @@ def graphic(data):
 
     years = []
 
-    for year in range(1975, 2015):
+    for year in range(FIRST_YEAR, 2015):
         row = totals.rows[str(year)]
         years.append(row['total'])
+
+    years.append(MID_YEAR_2015['total'])
 
     countries['total'] = years
 
@@ -203,5 +265,6 @@ if __name__ == '__main__':
     grouped.then(worst_country_year)
     grouped.then(subset)
     data_loaded.then(graphic)
+    data_loaded.then(to_and_from)
 
     data_loaded.run()

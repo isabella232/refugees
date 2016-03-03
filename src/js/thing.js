@@ -6,7 +6,7 @@ var request = require('d3-request');
 var _ = require('lodash');
 
 var FIRST_YEAR = 1975;
-var LAST_YEAR = 2014;
+var LAST_YEAR = 2015;
 var MOBILE_THRESHOLD = 600;
 
 // D3 formatters
@@ -39,10 +39,12 @@ function update () {
 			return;
 		}
 
+		var id = '#' + classify(country);
+
 		// Render the chart!
 		renderColumnChart({
-			container: '#' + classify(country),
-			width: width,
+			container: id,
+			width: $(id).width(),
 			data: data,
 			aspectRatio: 5,
 			max: 12,
