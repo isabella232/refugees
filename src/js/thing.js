@@ -46,7 +46,7 @@ function update () {
 			container: id,
 			width: $(id).width(),
 			data: data,
-			aspectRatio: 1.5,
+			aspectRatio: 2,
 			max: 12,
 			yTicks: isMobile ? [0, 6, 12] : [0, 3, 6, 9, 12]
 		});
