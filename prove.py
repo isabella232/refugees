@@ -27,7 +27,9 @@ SELECTED_COUNTRIES = [
     'Ukraine',
     'Chad',
     'Eritrea',
-    'Pakistan'
+    'Pakistan',
+    'Bosnia and Herzegovina',
+    'Rwanda'
 ]
 
 MID_YEAR_2015 = {
@@ -47,6 +49,8 @@ MID_YEAR_2015 = {
     'Ukraine': 1721545,
     'Chad': 86637,
     'Eritrea': 444091,
+    'Bosnia and Herzegovina': 162869,
+    'Rwanda': 94927,
     'total': 57959702
 }
 
