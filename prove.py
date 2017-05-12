@@ -29,7 +29,9 @@ SELECTED_COUNTRIES = [
     'Eritrea',
     'Pakistan',
     'Bosnia and Herzegovina',
-    'Rwanda'
+    'Rwanda',
+    'Central African Rep.',
+    'Nigeria'
 ]
 
 MID_YEAR_2015 = {
@@ -51,6 +53,8 @@ MID_YEAR_2015 = {
     'Eritrea': 444091,
     'Bosnia and Herzegovina': 162869,
     'Rwanda': 94927,
+    'Central African Rep.': 1004678,
+    'Nigeria': 1668973,
     'total': 57959702
 }
 
@@ -101,6 +105,12 @@ def count_years(data):
     ]).order_by('year')
 
     refugees.print_table()
+
+    total = data['by_year'].aggregate([
+        ('total_total', agate.Sum('total'), )
+    ]).order_by('year')
+
+    total.to_csv('years.csv')
 
 def count_origins(data):
     refugees = data['by_origin_2014'].aggregate([
@@ -164,6 +174,7 @@ def subset(data):
     ])
 
     refugees.to_csv('subset.csv')
+    refugees.pivot('year', 'origin', agate.Sum('total')).order_by('year').to_csv('subset_pivot.csv')
 
 def to_and_from(data):
     refugees = data['table'].select([

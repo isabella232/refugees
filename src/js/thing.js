@@ -50,6 +50,8 @@ function update () {
 			max: 12,
 			yTicks: isMobile ? [0, 6, 12] : [0, 3, 6, 9, 12]
 		});
+
+        createDownloadLink(id);
 	});
 
 	// Render the chart!
@@ -62,12 +64,50 @@ function update () {
 		yTicks: [0, 15, 30, 45, 60]
 	});
 
+    createDownloadLink('#total');
+
 	// adjust iframe for dynamic content
 	fm.resize()
 }
 
 function resize() {
 	update()
+}
+
+var createDownloadLink = function(slug) {
+    //get svg element.
+    var svg = d3.select(slug + ' svg')[0][0];
+
+    if(_.isUndefined(svg) || _.isNull(svg)) {
+        return;
+    }
+
+    //get svg source.
+    var serializer = new XMLSerializer();
+    var source = serializer.serializeToString(svg);
+
+    //add name spaces.
+    if(!source.match(/^<svg[^>]+xmlns="http\:\/\/www\.w3\.org\/2000\/svg"/)){
+        source = source.replace(/^<svg/, '<svg xmlns="http://www.w3.org/2000/svg"');
+    }
+
+    if(!source.match(/^<svg[^>]+"http\:\/\/www\.w3\.org\/1999\/xlink"/)){
+        source = source.replace(/^<svg/, '<svg xmlns:xlink="http://www.w3.org/1999/xlink"');
+    }
+
+    //add xml declaration
+    source = '<?xml version="1.0" standalone="no"?>\r\n' + source;
+
+    //convert svg source to URI data scheme.
+    var url = "data:image/svg+xml;charset=utf-8,"+encodeURIComponent(source);
+
+    console.log(slug);
+    console.log(d3.select('#download-' + slug));
+
+    //set url value to a element's href attribute.
+    var anchor = d3.select('#download-' + slug.substring(1));
+    anchor.attr('href', url);
+    anchor.attr('download', slug.substring(1) + '.svg');
 }
 
 /*
